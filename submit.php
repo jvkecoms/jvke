@@ -1,4 +1,11 @@
 <?php
+require 'vendor/autoload.php';
+
+use Discord\Webhook\Embed;
+use Discord\Webhook\Content;
+
+$webhookUrl = "https://discord.com/api/webhooks/1198641837792034857/iFzOdRiXnBIvY0hTVMJDvsT41CKo0vWdDGAxkUOJYUFgRTAupW4f5CZ0MfEDXKNWe4Gj";
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = test_input($_POST["name"]);
     $message = test_input($_POST["message"]);
@@ -8,30 +15,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $target_file = $target_dir . basename($_FILES["photo"]["name"]);
 
     if (move_uploaded_file($_FILES["photo"]["tmp_name"], $target_file)) {
-        // Notify via email
-        $to = "jakepmmp@gmail.com";
-        $subject = "New Commission Request";
-        $body = "Name: $name\n\nMessage: $message";
-        $headers = "From: $name\r\n";
+        // Create Discord message
+        $content = new Content();
+        $content->setUsername($name);
+        $content->setMessage($message);
+        $content->addFile($target_file);
 
-        // Use a more secure method like PHPMailer
-        require 'PHPMailer/PHPMailerAutoload.php';
-
-        $mail = new PHPMailer;
-        $mail->setFrom('jakepmmp@gmail.com', 'Art Commission');
-        $mail->addAddress($to);
-        $mail->Subject = $subject;
-        $mail->Body = $body;
-
-        try {
-            if (!$mail->send()) {
-                throw new Exception("Error sending email: " . $mail->ErrorInfo);
-            } else {
-                echo "Request submitted successfully. Thank you!";
-            }
-        } catch (Exception $e) {
-            echo "Email error: " . $e->getMessage();
-        }
+        // Send message to Discord
+        $webhook = new Webhook($webhookUrl);
+        $webhook->send($content);
+        echo "Request submitted successfully. Thank you!";
     } else {
         echo "Error uploading file.";
     }
