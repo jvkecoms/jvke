@@ -23,10 +23,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail->Subject = $subject;
         $mail->Body = $body;
 
-        if (!$mail->send()) {
-            echo "Error sending email: " . $mail->ErrorInfo;
-        } else {
-            echo "Request submitted successfully. Thank you!";
+        try {
+            if (!$mail->send()) {
+                throw new Exception("Error sending email: " . $mail->ErrorInfo);
+            } else {
+                echo "Request submitted successfully. Thank you!";
+            }
+        } catch (Exception $e) {
+            echo "Email error: " . $e->getMessage();
         }
     } else {
         echo "Error uploading file.";
